@@ -20,12 +20,11 @@ import android.view.animation.OvershootInterpolator;
  */
 public class GooView extends View {
     private Paint mPaint;
-
     private PointF mStickCenter = new PointF(300f, 300f);//固定圆,F为Float单位
     private float mStickRadius = 20f;
     private PointF[] mStickPoints;
 
-    private PointF mDragCenter = new PointF(300f,300f);
+    private PointF mDragCenter = new PointF(300f, 300f);
     private float mDragRadius = 25f;
     private PointF[] mDragPoints;
 
@@ -35,8 +34,50 @@ public class GooView extends View {
     private float farestDistance = 130.0f;
     private boolean isOutOfRange;//超出范围
 
-    private FloatEvaluator evaluator=new FloatEvaluator();
+    private FloatEvaluator evaluator = new FloatEvaluator();
     private boolean isDisappear;
+
+    public PointF getmStickCenter() {
+        return mStickCenter;
+    }
+
+    public void setmStickCenter(PointF mStickCenter) {
+        this.mStickCenter = mStickCenter;
+    }
+
+    public float getmStickRadius() {
+        return mStickRadius;
+    }
+
+    public void setmStickRadius(float mStickRadius) {
+        this.mStickRadius = mStickRadius;
+    }
+
+    public PointF getmDragCenter() {
+        return mDragCenter;
+    }
+
+    public void setmDragCenter(PointF mDragCenter) {
+        this.mDragCenter = mDragCenter;
+    }
+
+    public float getmDragRadius() {
+        return mDragRadius;
+    }
+
+    public void setmDragRadius(float mDragRadius) {
+        this.mDragRadius = mDragRadius;
+    }
+
+    public float getFarestDistance() {
+        return farestDistance;
+    }
+
+    public void setFarestDistance(float farestDistance) {
+        this.farestDistance = farestDistance;
+    }
+
+
 
     public GooView(Context context) {
         this(context, null);
@@ -68,16 +109,17 @@ public class GooView extends View {
             lineK = yOffset / xOffset;//斜率
         }
         mDragPoints = GeometryUtil.getIntersectionPoints(mDragCenter, mDragRadius, lineK);//得到拖拽圆两个交点坐标
-        mStickPoints = GeometryUtil.getIntersectionPoints(mStickCenter,tempStickRadius, lineK);//得到固定圆(临时的半径)两个交点坐标
+        mStickPoints = GeometryUtil.getIntersectionPoints(mStickCenter, tempStickRadius, lineK);//得到固定圆(临时的半径)两个交点坐标
         mControlPoint = GeometryUtil.getMiddlePoint(mDragCenter, mStickCenter);//得到控制点的坐标
 
 
+        //可以吧save理解成把之前的画布保存，而save之后的是在一个新的画布上画画，restore表示合并：save之前保存的画布，和save到restore之间的画布
         canvas.save();//保存画布状态（坐标系等）
         canvas.translate(0, -mStatusBarHeight);
 
         //画出最大范围(参考用)
         mPaint.setStyle(Paint.Style.STROKE);
-        canvas.drawCircle(mStickCenter.x,mStickCenter.y,farestDistance,mPaint);
+        canvas.drawCircle(mStickCenter.x, mStickCenter.y, farestDistance, mPaint);
         mPaint.setStyle(Paint.Style.FILL);
 
         if (!isDisappear) {
@@ -102,16 +144,16 @@ public class GooView extends View {
             //2.画拖拽圆
             canvas.drawCircle(mDragCenter.x, mDragCenter.y, mDragRadius, mPaint);
         }
-            canvas.restore();//恢复保存的状态,及坐标系恢复
+        canvas.restore();//恢复保存的状态,及坐标系恢复
     }
 
     //根据两圆心距离获取固定圆半径(实现：固定圆缩小特效)
     private float getTempStickRadius() {
         float distance = GeometryUtil.getDistanceBetween2Points(mDragCenter, mStickCenter);
         //0.0f-1.0f
-        float percent = Math.min(distance, farestDistance)/farestDistance;
+        float percent = Math.min(distance, farestDistance) / farestDistance;
 
-        return evaluator.evaluate(percent,mStickRadius,mStickRadius*0.2f);
+        return evaluator.evaluate(percent, mStickRadius, mStickRadius * 0.2f);
     }
 
     @Override
@@ -120,8 +162,8 @@ public class GooView extends View {
         float y;
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                isOutOfRange=false;
-                isDisappear=false;
+                isOutOfRange = false;
+                isDisappear = false;
                 x = event.getRawX();
                 y = event.getRawY();
                 updateDragCenter(x, y);
@@ -131,35 +173,35 @@ public class GooView extends View {
                 y = event.getRawY();
                 updateDragCenter(x, y);
                 //处理断开事件
-                float distance=GeometryUtil.getDistanceBetween2Points(mDragCenter,mStickCenter);
-                if (distance>farestDistance){
-                    isOutOfRange=true;
+                float distance = GeometryUtil.getDistanceBetween2Points(mDragCenter, mStickCenter);
+                if (distance > farestDistance) {
+                    isOutOfRange = true;
                     invalidate();
                 }
                 break;
             case MotionEvent.ACTION_UP:
                 //最后的处理
-                if (isOutOfRange){
+                if (isOutOfRange) {
                     //超出拖拽范围，断开，松手，消失
-                    float d=GeometryUtil.getDistanceBetween2Points(mDragCenter,mStickCenter);
-                    if (d>farestDistance){
+                    float d = GeometryUtil.getDistanceBetween2Points(mDragCenter, mStickCenter);
+                    if (d > farestDistance) {
                         //松手还没有放回去
-                        isDisappear=true;
+                        isDisappear = true;
                         invalidate();
                     }
                     //超出拖拽范围，断开，放回去，恢复
-                    updateDragCenter(mStickCenter.x,mStickCenter.y);
-                }else {
+                    updateDragCenter(mStickCenter.x, mStickCenter.y);
+                } else {
                     //没有超过拖拽范围，松手，弹回去
-                    final PointF tempDragCenter=new PointF(mDragCenter.x,mDragCenter.y);//固定拖拽圆的圆心
-                    ValueAnimator valueAnimator=ValueAnimator.ofFloat(1.0f);
+                    final PointF tempDragCenter = new PointF(mDragCenter.x, mDragCenter.y);//固定拖拽圆的圆心
+                    ValueAnimator valueAnimator = ValueAnimator.ofFloat(1.0f);
                     valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                         @Override
                         public void onAnimationUpdate(ValueAnimator valueAnimator) {
                             //0.0->1.0
-                            float percent=valueAnimator.getAnimatedFraction();
-                            PointF p=GeometryUtil.getPointByPercent(tempDragCenter,mStickCenter,percent);//根据松手时固定圆心和拖拽圆心的距离，和差值器，更新动画
-                            updateDragCenter(p.x,p.y);
+                            float percent = valueAnimator.getAnimatedFraction();
+                            PointF p = GeometryUtil.getPointByPercent(tempDragCenter, mStickCenter, percent);//根据松手时固定圆心和拖拽圆心的距离，和差值器，更新动画
+                            updateDragCenter(p.x, p.y);
                         }
                     });
                     valueAnimator.setInterpolator(new OvershootInterpolator(4));

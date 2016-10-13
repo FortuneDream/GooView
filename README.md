@@ -1,5 +1,8 @@
 # GooView
 ## 这是我做过的最酷炫的View！！没有之一！！！
+### 下面是示例图
+![GooView.gif](GooView.gif)
+### 主要知识点
 * Path
 ```Java
  path.moveTo(mStickPoints[0].x, mStickPoints[0].y);

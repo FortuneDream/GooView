@@ -1,5 +1,5 @@
 # GooView
-## 这是我做过的最酷炫的View！！没有之一！！！
+> 仿QQ未读信息的小红点
 ### 下面是示例图
 ![GooView.gif](GooView.gif)
 ### 主要知识点
@@ -14,4 +14,4 @@
                 path.quadTo(mControlPoint.x, mControlPoint.y, mStickPoints[1].x, mStickPoints[1].y);
                 path.close();//自动封闭（回到起始点）
 ```
-* 其他的？ 直接看代码吧。。。反正能抽出来借鉴的代码应该不会很多了。
+
